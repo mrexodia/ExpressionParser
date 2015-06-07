@@ -1,7 +1,7 @@
 #include "expressionparser.h"
 #include <stdio.h>
 
-ExpressionParser::Token::Token(const std::string data, const Type type)
+ExpressionParser::Token::Token(const std::string & data, const Type type)
 {
     _data = data;
     _type = type;
@@ -75,18 +75,18 @@ const bool ExpressionParser::Token::isOperator() const
     return _type != Type::Data && _type != Type::OpenBracket && _type != Type::CloseBracket;
 }
 
-ExpressionParser::ExpressionParser(const std::string expression)
+ExpressionParser::ExpressionParser(const std::string & expression)
 {
     tokenize(fixClosingBrackets(expression));
     shuntingYard();
 }
 
-std::string ExpressionParser::fixClosingBrackets(const std::string expression)
+std::string ExpressionParser::fixClosingBrackets(const std::string & expression)
 {
     int open = 0;
     int close = 0;
-    int len = expression.length();
-    for (int i = 0; i < len; i++)
+    size_t len = expression.length();
+    for (size_t i = 0; i < len; i++)
     {
         if (expression[i] == '(')
             open++;
@@ -102,10 +102,10 @@ std::string ExpressionParser::fixClosingBrackets(const std::string expression)
     return result;
 }
 
-void ExpressionParser::tokenize(const std::string expression)
+void ExpressionParser::tokenize(const std::string & expression)
 {
-    int len = expression.length();
-    for (int i = 0; i < len; i++)
+    size_t len = expression.length();
+    for (size_t i = 0; i < len; i++)
     {
         char ch = expression[i];
         switch (ch)
@@ -132,7 +132,7 @@ void ExpressionParser::tokenize(const std::string expression)
             addOperatorToken(ch, Token::Type::OperatorMod);
             break;
         case '+':
-            if (!isUnaryOperator()) //skip all unary add operators
+            if (!isUnaryOperator()) //skip all unary plus operators
                 addOperatorToken(ch, Token::Type::OperatorAdd);
             break;
         case '-':
@@ -163,30 +163,30 @@ void ExpressionParser::tokenize(const std::string expression)
             break;
         }
     }
-    if (_curToken.length() != 0)
+    if (_curToken.length() != 0) //make sure the last token is added
         _tokens.push_back(Token(_curToken, Token::Type::Data));
 }
 
 void ExpressionParser::addOperatorToken(const char ch, const Token::Type type)
 {
-    if (_curToken.length())
+    if (_curToken.length()) //add a new data token when there is data in the buffer
     {
         _tokens.push_back(Token(_curToken, Token::Type::Data));
         _curToken = "";
     }
     std::string data;
     data += ch;
-    _tokens.push_back(Token(data, type));
+    _tokens.push_back(Token(data, type)); //add the operator token
 }
 
 bool ExpressionParser::isUnaryOperator()
 {
-    if (_curToken.length())
+    if (_curToken.length()) //data before the operator means it is no unary operator
         return false;
-    if (!_tokens.size())
+    if (!_tokens.size()) //no tokens before the operator means it is an unary operator
         return true;
     Token lastToken = _tokens[_tokens.size() - 1];
-    return lastToken.isOperator();
+    return lastToken.isOperator(); //if the previous operator is a token, the operator is an unary operator
 }
 
 void ExpressionParser::shuntingYard()
@@ -195,6 +195,7 @@ void ExpressionParser::shuntingYard()
     std::vector<Token> queue;
     std::stack<Token> stack;
     size_t len = _tokens.size();
+    //process the tokens
     for (size_t i = 0; i < len; i++)
     {
         Token & token = _tokens[i];
@@ -237,11 +238,12 @@ void ExpressionParser::shuntingYard()
             break;
         }
     }
+    //pop the remaining operators
     while (!stack.empty())
     {
         Token curToken = stack.top();
         stack.pop();
-        if (curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket)
+        if (curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket) //brackets on the stack means invalid expression
             return;
         queue.push_back(curToken);
     }
@@ -305,7 +307,7 @@ bool ExpressionParser::operation(const Token::Type type, const uint op1, const u
     }
 }
 
-bool ExpressionParser::valFromString(const std::string data, uint & value)
+bool ExpressionParser::valFromString(const std::string & data, uint & value)
 {
     return sscanf_s(data.c_str(), "%u", &value) == 1;
 }
@@ -317,6 +319,7 @@ bool ExpressionParser::calculate(uint & value)
         return false;
     std::stack<uint> stack;
     size_t len = _prefixTokens.size();
+    //calculate the result from the RPN queue
     for (size_t i = 0; i < len; i++)
     {
         Token & token = _prefixTokens[i];
@@ -369,7 +372,7 @@ bool ExpressionParser::calculate(uint & value)
         }
 
     }
-    if (stack.empty())
+    if (stack.empty()) //empty result stack means error
         return false;
     value = stack.top();
     return true;
