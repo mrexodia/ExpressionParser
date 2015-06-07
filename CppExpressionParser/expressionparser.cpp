@@ -1,23 +1,23 @@
 #include "expressionparser.h"
 #include <stdio.h>
 
-ExpressionParser::Token::Token(std::string data, Type type)
+ExpressionParser::Token::Token(const std::string data, const Type type)
 {
     _data = data;
     _type = type;
 }
 
-const std::string ExpressionParser::Token::data()
+const std::string ExpressionParser::Token::data() const
 {
     return _data;
 }
 
-const ExpressionParser::Token::Type ExpressionParser::Token::type()
+const ExpressionParser::Token::Type ExpressionParser::Token::type() const
 {
     return _type;
 }
 
-const ExpressionParser::Token::Associativity ExpressionParser::Token::associativity()
+const ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() const
 {
     switch (_type)
     {
@@ -41,7 +41,7 @@ const ExpressionParser::Token::Associativity ExpressionParser::Token::associativ
     }
 }
 
-const int ExpressionParser::Token::precedence()
+const int ExpressionParser::Token::precedence() const
 {
     switch (_type)
     {
@@ -70,18 +70,18 @@ const int ExpressionParser::Token::precedence()
     }
 }
 
-const bool ExpressionParser::Token::isOperator()
+const bool ExpressionParser::Token::isOperator() const
 {
     return _type != Type::Data && _type != Type::OpenBracket && _type != Type::CloseBracket;
 }
 
-ExpressionParser::ExpressionParser(std::string expression)
+ExpressionParser::ExpressionParser(const std::string expression)
 {
     tokenize(fixClosingBrackets(expression));
     shuntingYard();
 }
 
-std::string ExpressionParser::fixClosingBrackets(std::string expression)
+std::string ExpressionParser::fixClosingBrackets(const std::string expression)
 {
     int open = 0;
     int close = 0;
@@ -93,15 +93,16 @@ std::string ExpressionParser::fixClosingBrackets(std::string expression)
         else if (expression[i] == ')')
             close++;
     }
+    std::string result = expression;
     if (close < open)
     {
         for (int i = 0; i < open - close; i++)
-            expression += ")";
+            result += ")";
     }
-    return expression;
+    return result;
 }
 
-void ExpressionParser::tokenize(std::string expression)
+void ExpressionParser::tokenize(const std::string expression)
 {
     int len = expression.length();
     for (int i = 0; i < len; i++)
@@ -166,7 +167,7 @@ void ExpressionParser::tokenize(std::string expression)
         _tokens.push_back(Token(_curToken, Token::Type::Data));
 }
 
-void ExpressionParser::addOperatorToken(char ch, Token::Type type)
+void ExpressionParser::addOperatorToken(const char ch, const Token::Type type)
 {
     if (_curToken.length())
     {
@@ -188,7 +189,7 @@ bool ExpressionParser::isUnaryOperator()
     return lastToken.isOperator();
 }
 
-bool ExpressionParser::shuntingYard()
+void ExpressionParser::shuntingYard()
 {
     //Implementation of Dijkstra's Shunting-yard algorithm
     std::vector<Token> queue;
@@ -196,7 +197,7 @@ bool ExpressionParser::shuntingYard()
     size_t len = _tokens.size();
     for (size_t i = 0; i < len; i++)
     {
-        Token token = _tokens.at(i);
+        Token & token = _tokens[i];
         switch (token.type())
         {
         case Token::Type::Data:
@@ -209,7 +210,7 @@ bool ExpressionParser::shuntingYard()
             while (true)
             {
                 if (stack.empty()) //empty stack = bracket mismatch
-                    return false;
+                    return;
                 Token curToken = stack.top();
                 stack.pop();
                 if (curToken.type() == Token::Type::OpenBracket)
@@ -218,7 +219,7 @@ bool ExpressionParser::shuntingYard()
             }
             break;
         default: //operator
-            Token o1 = token;
+            Token & o1 = token;
             while (!stack.empty())
             {
                 Token o2 = stack.top();
@@ -241,14 +242,13 @@ bool ExpressionParser::shuntingYard()
         Token curToken = stack.top();
         stack.pop();
         if (curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket)
-            return false;
+            return;
         queue.push_back(curToken);
     }
     _prefixTokens = queue;
-    return true;
 }
 
-bool ExpressionParser::operation(Token::Type type, uint op1, uint op2, uint & result)
+bool ExpressionParser::operation(const Token::Type type, const uint op1, const uint op2, uint & result)
 {
     result = 0;
     switch (type)
@@ -305,7 +305,7 @@ bool ExpressionParser::operation(Token::Type type, uint op1, uint op2, uint & re
     }
 }
 
-bool ExpressionParser::valFromString(std::string data, uint & value)
+bool ExpressionParser::valFromString(const std::string data, uint & value)
 {
     return sscanf_s(data.c_str(), "%u", &value) == 1;
 }
@@ -319,7 +319,7 @@ bool ExpressionParser::calculate(uint & value)
     size_t len = _prefixTokens.size();
     for (size_t i = 0; i < len; i++)
     {
-        Token token = _prefixTokens.at(i);
+        Token & token = _prefixTokens[i];
         if (token.isOperator())
         {
             uint op1 = 0;

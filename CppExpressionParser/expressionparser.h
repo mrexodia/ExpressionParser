@@ -10,7 +10,7 @@ typedef unsigned int uint;
 class ExpressionParser
 {
 public:
-    ExpressionParser(std::string expression);
+    ExpressionParser(const std::string expression);
     bool calculate(uint & value);
 
 private:
@@ -44,25 +44,25 @@ private:
             Unspecified
         };
 
-        Token(std::string data, Type type);
-        const std::string data();
-        const Type type();
-        const Associativity associativity();
-        const int precedence();
-        const bool isOperator();
+        Token(const std::string data, const Type type);
+        const std::string data() const;
+        const Type type() const;
+        const Associativity associativity() const;
+        const int precedence() const;
+        const bool isOperator() const;
         
     private:
         std::string _data;
         Type _type;
     };
 
-    std::string fixClosingBrackets(std::string expression);
+    std::string fixClosingBrackets(const std::string expression);
     bool isUnaryOperator();
-    void tokenize(std::string expression);
-    bool shuntingYard();
-    void addOperatorToken(char ch, Token::Type type);
-    bool operation(Token::Type type, uint op1, uint op2, uint & result);
-    bool valFromString(std::string data, uint & value);
+    void tokenize(const std::string expression);
+    void shuntingYard();
+    void addOperatorToken(const char ch, const Token::Type type);
+    bool operation(const Token::Type type, const uint op1, const uint op2, uint & result);
+    bool valFromString(const std::string data, uint & value);
 
     std::vector<Token> _tokens;
     std::vector<Token> _prefixTokens;
