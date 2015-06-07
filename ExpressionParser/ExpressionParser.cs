@@ -125,8 +125,27 @@ namespace ExpressionParser
 
         public ExpressionParser(string expression)
         {
-            tokenize(expression);
+            tokenize(fixClosingBrackets(expression));
             shuntingYard();
+        }
+
+        private string fixClosingBrackets(string expression)
+        {
+            int open = 0;
+            int close = 0;
+            foreach (var ch in expression)
+            {
+                if (ch == '(')
+                    open++;
+                else if (ch == ')')
+                    close++;
+            }
+            if (close < open)
+            {
+                for (int i = 0; i < open - close; i++)
+                    expression += ")";
+            }
+            return expression;
         }
 
         private bool isUnaryOperator()
