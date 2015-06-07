@@ -1,4 +1,5 @@
+Release/
+Debug/
+*.sdf
 *.suo
-bin/
-obj/
-*.cachefile
+*.opensdf
