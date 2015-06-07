@@ -1,6 +1,6 @@
 # ExpressionParser
 
-This is a very simple expression parser for binary operations with operator precedence, unary minus/plus and parentheses.
+This is a very simple expression parser for binary operations with operator precedence, unary minus/plus and parentheses. It uses Dijkstra's Shunting-yard algorithm.
 
 Sample input/output:
 
